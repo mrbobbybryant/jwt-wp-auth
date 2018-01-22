@@ -1,0 +1,29 @@
+{
+    "name": "developwithwp/jwt-wp-auth",
+    "description": "PHP Library which adds JWT Support and Authorization Route to WP REST API.",
+    "type": "package",
+    "keywords": [],
+    "homepage": "https://github.com/mrbobbybryant/jwt-wp-auth",
+    "license": "GPL-2.0+",
+    "author": {
+      "name": "Bobby Bryant",
+      "email": "bobby@developwithwp.com",
+      "homepage": "Bobby Bryant",
+      "role": "Developer"
+    },
+    "minimum-stability": "dev",
+    "repositories" : [
+      {
+        "type" : "composer",
+        "url"  : "https://wpackagist.org"
+      }
+    ],
+    "require": {
+      "aaronholbrook/autoload": "dev-master",
+      "firebase/php-jwt": "dev-master"
+    },
+    "require-dev": {},
+    "autoload": {
+      "files": [ "index.php" ]
+    }
+  }
