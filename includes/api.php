@@ -67,22 +67,12 @@ function authorize_user( $request ) {
 function register_user( $request ) {
 	$parameters = $request->get_params();
 
-	if ( ! \get_option( 'users_can_register' ) ) {
-		$error = new \WP_Error(
-			'jwt_login_required',
-			esc_html__( 'Sorry, you must allow users to signup for this endpoint to work. Go to Settings -> General.' ),
-			array( 'status' => 401 )
-		);
-
-		return rest_ensure_response( $error );
-	}
-
 	$user = wp_create_user( $parameters['username'], $parameters['password'], $parameters['email'] );
 
 	if ( is_wp_error( $user ) ) {
 		$error = new \WP_Error(
 			$user->get_error_code(),
-			$user->get_error_message( $code ),
+			$user->get_error_message(),
 			array( 'status' => 401 )
 		);
 
@@ -103,7 +93,7 @@ function register_user_permissions_check() {
 	if ( ! \get_option( 'users_can_register' ) ) {
 		$error = new \WP_Error(
 			'jwt_login_required',
-			esc_html__( 'Sorry, you must allow users to signup for this endpoint to work.' ),
+			esc_html__( 'Sorry, you must allow users to signup for this endpoint to work. Go to Settings -> General.' ),
 			array( 'status' => 401 )
 		);
 
