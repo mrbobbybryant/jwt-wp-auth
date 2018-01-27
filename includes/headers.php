@@ -17,9 +17,12 @@ function setup() {
  * @return void
  */
 function wp_rest_allow_all_cors() {
+	$origin = defined( 'JWT_ORIGIN' ) && JWT_ORIGIN ? JWT_ORIGIN : '*';
+
 	remove_filter( 'rest_pre_serve_request', 'rest_send_cors_headers' );
-	add_filter( 'rest_pre_serve_request', function( $value ) {
-		header( 'Access-Control-Allow-Origin: *' );
+
+	add_filter( 'rest_pre_serve_request', function( $value ) use ( $origin ) {
+		header( sprintf( 'Access-Control-Allow-Origin: %s', $origin ) );
 		header( 'Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE' );
 		header( 'Access-Control-Allow-Credentials: true' );
 		return $value;
