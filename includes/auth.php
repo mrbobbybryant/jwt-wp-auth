@@ -4,22 +4,27 @@ namespace JWT\Auth;
 use JWT\Headers;
 use JWT\JWT;
 
+/**
+ * Function handles bootstrapping the JWT Auth Process.
+ *
+ * @return void
+ */
 function setup() {
-	add_filter( 'determine_current_user', __NAMESPACE__ . '\json_basic_auth_handler', 20 );
-	add_filter( 'rest_authentication_errors', __NAMESPACE__ . '\json_basic_auth_error' );
+	add_filter( 'determine_current_user', __NAMESPACE__ . '\json_jwt_auth_handler', 20 );
+	add_filter( 'rest_authentication_errors', __NAMESPACE__ . '\json_jwt_auth_error' );
 }
 
 /**
- * Plugin Name: JSON Basic Authentication
- * Description: Basic Authentication handler for the JSON API, used for development and debugging purposes
- * Author: WordPress API Team
- * Author URI: https://github.com/WP-API
- * Version: 0.1
- * Plugin URI: https://github.com/WP-API/Basic-Auth
+ * Function hooks into the get current users process used by the Rest API and validates the
+ * current users by extracting the user_id from a json web token. This code was primarily lifted from the
+ * basic auth plugin. So Props to them for the over process.
+ *
+ * @param [object] $user WP User Object
+ * @return void|int
  */
-function json_basic_auth_handler( $user ) {
-	global $wp_json_basic_auth_error;
-	$wp_json_basic_auth_error = null;
+function json_jwt_auth_handler( $user ) {
+	global $wp_json_jwt_auth_error;
+	$wp_json_jwt_auth_error = null;
 	// Don't authenticate twice.
 	if ( ! empty( $user ) ) {
 		return $user;
@@ -44,20 +49,27 @@ function json_basic_auth_handler( $user ) {
 	add_filter( 'determine_current_user', 'json_basic_auth_handler', 20 );
 
 	if ( is_wp_error( $token ) ) {
-		$wp_json_basic_auth_error = $token;
+		$wp_json_jwt_auth_error = $token;
 		return null;
 	}
 
-	$wp_json_basic_auth_error = true;
+	$wp_json_jwt_auth_error = true;
 	return $token->data->userId;
 }
 
-function json_basic_auth_error( $error ) {
+/**
+ * Function ensures authentication errors are returned to the client in the event that the
+ * jwt auth process fails.
+ *
+ * @param [object] $error WP_Error.
+ * @return object
+ */
+function json_jwt_auth_error( $error ) {
 	// Passthrough other errors.
 	if ( ! empty( $error ) ) {
-		return $error;
+		return rest_ensure_response( $error );
 	}
 
-	global $wp_json_basic_auth_error;
-	return $wp_json_basic_auth_error;
+	global $wp_json_jwt_auth_error;
+	return rest_ensure_response( $wp_json_jwt_auth_error );
 }
