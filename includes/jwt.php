@@ -27,7 +27,7 @@ function create( $user ) {
 		'nbf'  => $not_before,
 		'exp'  => $expire,
 		'data' => [
-			'userId' => $user->ID,
+			'userId' => is_object( $user ) ? $user->ID : $user,
 		],
 	];
 

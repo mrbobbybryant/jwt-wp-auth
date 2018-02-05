@@ -55,7 +55,14 @@ function authorize_user( $request ) {
 		return rest_ensure_response( $error );
 	}
 
-	return rest_ensure_response( JWT\create( $user ) );
+	$jwt       = JWT\create( $user );
+	$user_data = get_default_user_data( $user );
+
+	$payload = array_merge( $user_data, $jwt );
+
+	$payload = apply_filters( 'jwt_wp_filter_login_response', $payload, $user );
+
+	return rest_ensure_response( $payload );
 }
 
 /**
@@ -79,9 +86,13 @@ function register_user( $request ) {
 		return rest_ensure_response( $error );
 	}
 
-	$user = get_userdata( $user );
+	$jwt  = JWT\create( $user );
+	$user = get_default_user_data( get_userdata( $user ) );
 
-	return rest_ensure_response( JWT\create( $user ) );
+	$payload = array_merge( $jwt, $user );
+	$payload = apply_filters( 'jwt_wp_filter_register_response', $payload, $user );
+
+	return rest_ensure_response( $payload );
 }
 
 /**
@@ -207,4 +218,21 @@ function string_arg_sanitize_callback( $value, $request, $param ) {
  */
 function email_arg_sanitize_callback( $value, $request, $param ) {
 	return sanitize_email( $value );
+}
+
+/**
+ * Function filters the WP User Object returned from calling wp_authenticate to
+ * only allow some of those values to be passed to the client.
+ *
+ * @param [object] $user WP User Object.
+ * @return array
+ */
+function get_default_user_data( $user ) {
+	return [
+		'ID'            => $user->data->ID,
+		'user_login'    => $user->data->user_login,
+		'user_nicename' => $user->data->user_nicename,
+		'user_email'    => $user->data->user_email,
+		'roles'         => $user->roles,
+	];
 }
