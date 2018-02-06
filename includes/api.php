@@ -45,6 +45,15 @@ function register_user_auth_route() {
 			'args'                => get_reset_arguments(),
 		)
 	);
+
+	register_rest_route(
+		'jwt/v1', '/auth/change_password', array(
+			'methods'             => \WP_REST_Server::EDITABLE,
+			'callback'            => __NAMESPACE__ . '\change_password',
+			'permission_callback' => __NAMESPACE__ . '\change_password_permissions_check',
+			'args'                => get_change_password_arguments(),
+		)
+	);
 }
 
 /**
@@ -105,6 +114,138 @@ function register_user( $request ) {
 }
 
 /**
+ * Change Password endpoint callback function. Allows an anonymous user to reset their password.
+ *
+ * @param [Object] $request WP Rest API Request Object.
+ * @return Object Success object with Json Web Token, Error if change password fails.
+ */
+function change_password( $request ) {
+	$user = check_password_reset_key( $request['reset_key'], $request['user_login'] );
+
+	$user_data = array(
+		'ID'        => $user->ID,
+		'user_pass' => $request['password'],
+	);
+
+	$updated = wp_update_user( $user_data );
+
+	if ( is_wp_error( $updated ) ) {
+		$error = new \WP_Error(
+			$updated->get_error_code(),
+			$updated->get_error_message(),
+			array( 'status' => 401 )
+		);
+
+		return rest_ensure_response( $error );
+	}
+
+	$jwt       = JWT\create( $user );
+	$user_data = get_default_user_data( $user );
+
+	$payload = array_merge( $user_data, $jwt );
+
+	$payload = apply_filters( 'jwt_wp_filter_login_response', $payload, $user );
+
+	return rest_ensure_response( $payload );
+
+}
+
+/**
+ * Function checks to make sure the change password request meets certain requirements.
+ * - Confirms that the reset_key is valid and as not expired.
+ * - Confirms that the user submitted a password and confirmation password.
+ * - Confirms that those passwords are equal.
+ *
+ * @param [Object] $request WP Rest API Request Object.
+ * @return Object Success return true, or WP_Error if change password fails.
+ */
+function change_password_permissions_check( $request ) {
+
+	$user = check_password_reset_key( $request['reset_key'], $request['user_login'] );
+
+	if ( is_wp_error( $user ) ) {
+		$error = new \WP_Error(
+			$user->get_error_code(),
+			$user->get_error_message(),
+			array( 'status' => 401 )
+		);
+
+		return rest_ensure_response( $error );
+	}
+
+	if ( ! $user ) {
+		$error = new \WP_Error(
+			'user_reset_error',
+			'Reset key is not for a valid WP user.',
+			array( 'status' => 401 )
+		);
+
+		return rest_ensure_response( $error );
+	}
+
+	if ( '' === $request['password'] || '' === $request['confirm_password'] ) {
+		$error = new \WP_Error(
+			'user_reset_error',
+			'Reset and Confirmation passwords cannot be empty.',
+			array( 'status' => 401 )
+		);
+
+		return rest_ensure_response( $error );
+	}
+
+	if ( $request['password'] !== $request['confirm_password'] ) {
+		$error = new \WP_Error(
+			'user_reset_error',
+			'Reset and Confirmation passwords do not match.',
+			array( 'status' => 401 )
+		);
+
+		return rest_ensure_response( $error );
+	}
+
+	return true;
+}
+
+/**
+ * Function defines the arguments schema for the change password enpoint.
+ *
+ * @return Array Associative array for the login schema.
+ */
+function get_change_password_arguments() {
+	$args = array();
+
+	$args['user_login'] = array(
+		'description'       => esc_html__( 'A WordPress username.' ),
+		'type'              => 'string',
+		'required'          => true,
+		'validate_callback' => __NAMESPACE__ . '\string_arg_validate_callback',
+	);
+
+	$args['reset_key'] = array(
+		'description'       => esc_html__( 'Reset password key which was sent in the reset password email.' ),
+		'type'              => 'string',
+		'required'          => true,
+		'validate_callback' => __NAMESPACE__ . '\string_arg_validate_callback',
+	);
+
+	$args['password'] = array(
+		'description'       => esc_html__( 'Reset password key which was sent in the reset password email.' ),
+		'type'              => 'string',
+		'required'          => true,
+		'validate_callback' => __NAMESPACE__ . '\string_arg_validate_callback',
+	);
+
+	$args['confirm_password'] = array(
+		'description'       => esc_html__( 'Reset password key which was sent in the reset password email.' ),
+		'type'              => 'string',
+		'required'          => true,
+		'validate_callback' => __NAMESPACE__ . '\string_arg_validate_callback',
+	);
+
+	return $args;
+}
+
+/**
  * Callback function responsible for logging a user as requests a password reset link. Function
  * Creates reset key, saves it to the DB, and sends the reset password link via an email.
  *
@@ -112,7 +253,7 @@ function register_user( $request ) {
  * @return Object|mixed Returns true on success, or an Error if request fails.
  */
 function reset_password( $request ) {
-	global $wpdb, $wp_db_version;
+	global $wpdb, $wp_hasher, $wp_db_version;
 
 	if ( strpos( $request['user_login'], '@' ) ) {
 		$user_data = get_user_by( 'email', trim( $request['user_login'] ) );
@@ -126,7 +267,16 @@ function reset_password( $request ) {
 	// Generate something random for a password reset key.
 	$key = wp_generate_password( 20, false );
 
-	$hashed = wp_hash_password( $key );
+	if ( empty( $wp_hasher ) ) {
+		require_once ABSPATH . WPINC . '/class-phpass.php';
+		$wp_hasher = new \PasswordHash( 8, true );
+	}
+	if ( $wp_db_version >= 32814 ) {
+		// 4.3 or later
+		$hashed = time() . ':' . $wp_hasher->HashPassword( $key );
+	} else {
+		$hashed = $wp_hasher->HashPassword( $key );
+	}
 
 	$result = $wpdb->update( $wpdb->users, [ 'user_activation_key' => $hashed ], [ 'user_login' => $user_login ] );
 
@@ -243,7 +393,7 @@ function send_reset_password_email( $user_login, $key, $user_email, $user_data )
 		array(
 			'rcp_action' => 'lostpassword_reset',
 			'key'        => $key,
-			'login'      => rawurlencode( $user_login )
+			'login'      => rawurlencode( $user_login ),
 		),
 		JWT_ORIGIN
 	);
