@@ -1,7 +1,7 @@
 {
     "name": "developwithwp/jwt-wp-auth",
     "description": "PHP Library which adds JWT Support and Authorization Route to WP REST API.",
-    "type": "package",
+    "type": "wordpress-plugin",
     "keywords": [],
     "homepage": "https://github.com/mrbobbybryant/jwt-wp-auth",
     "license": "GPL-2.0+",

@@ -1,11 +1,37 @@
 <?php
+/**
+ * Plugin Name:  JWT Rest API Authentication
+ * Plugin URI:   https://github.com/mrbobbybryant/jwt-wp-auth
+ * Description:  Plugin modifies the WordPress Rest API to use JWTs to Authenticate API Requests.
+ * Version:      0.0.1
+ * Author:       Bobby Bryant
+ * Author URI:   https://developwithwp.com
+ * License:      GPL2
+ * License URI:  https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain:  jwt-auth
+ * Domain Path:  /languages
+ *
+ * @package JWT Rest API Authentication
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
 
 if ( ! defined( 'JWT_AUTH_VERSION' ) ) {
 	define( 'JWT_AUTH_VERSION', '0.0.1' );
 }
 
-\AaronHolbrook\Autoload\autoload( dirname( __FILE__ ) . '/includes' );
+if ( ! defined( 'JWT_AUTH_PATH' ) ) {
+	define( 'JWT_AUTH_PATH', dirname( __FILE__ ) );
+}
 
-JWT\API\setup();
-JWT\Auth\setup();
-JWT\Headers\setup();
+if ( file_exists( JWT_AUTH_PATH . '/vendor/autoload.php' ) ) {
+	require JWT_AUTH_PATH . '/vendor/autoload.php';
+
+	\AaronHolbrook\Autoload\autoload( JWT_AUTH_PATH . '/includes' );
+
+	JWT\API\setup();
+	JWT\Auth\setup();
+	JWT\Headers\setup();
+}
