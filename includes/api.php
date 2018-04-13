@@ -22,7 +22,7 @@ function setup() {
 function register_user_auth_route() {
 	register_rest_route(
 		'jwt/v1', '/auth/login', array(
-			'methods'  => \WP_REST_Server::READABLE,
+			'methods'  => \WP_REST_Server::EDITABLE,
 			'callback' => __NAMESPACE__ . '\authorize_user',
 			'args'     => get_login_arguments(),
 		)
