@@ -8,7 +8,7 @@ namespace JWT\Headers;
  */
 function setup() {
 	add_action( 'rest_api_init', __NAMESPACE__ . '\wp_rest_allow_all_cors', 15 );
-	add_filter('rest_post_dispatch', __NAMESPACE__ . '\wp_pre_flight_all_cors' );
+	add_filter( 'rest_post_dispatch', __NAMESPACE__ . '\wp_pre_flight_all_cors' );
 }
 
 /**

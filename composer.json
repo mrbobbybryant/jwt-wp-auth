@@ -19,7 +19,6 @@
       }
     ],
     "require": {
-      "aaronholbrook/autoload": "dev-master",
       "firebase/php-jwt": "dev-master"
     },
     "require-dev": {},

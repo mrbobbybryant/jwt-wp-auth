@@ -28,8 +28,10 @@ if ( ! defined( 'JWT_AUTH_PATH' ) ) {
 
 if ( file_exists( JWT_AUTH_PATH . '/vendor/autoload.php' ) ) {
 	require JWT_AUTH_PATH . '/vendor/autoload.php';
-
-	\AaronHolbrook\Autoload\autoload( JWT_AUTH_PATH . '/includes' );
+	require_once JWT_AUTH_PATH . '/includes/api.php';
+	require_once JWT_AUTH_PATH . '/includes/auth.php';
+	require_once JWT_AUTH_PATH . '/includes/headers.php';
+	require_once JWT_AUTH_PATH . '/includes/jwt.php';
 
 	JWT\API\setup();
 	JWT\Auth\setup();
