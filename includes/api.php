@@ -510,6 +510,9 @@ function get_register_arguments() {
 		'validate_callback' => __NAMESPACE__ . '\string_arg_validate_callback',
 		'sanitize_callback' => __NAMESPACE__ . '\string_arg_sanitize_callback',
 	);
+
+	$args = apply_filters( 'jwt_wp_filter_register_args', $args );
+
 	return $args;
 }
 
