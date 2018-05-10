@@ -3,6 +3,10 @@ namespace JWT\JWT;
 
 use JWT\Headers;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
 /**
  * Function create a valide json web token for the input user account.
  *

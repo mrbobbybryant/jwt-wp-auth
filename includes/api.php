@@ -3,6 +3,10 @@ namespace JWT\API;
 
 use JWT\JWT;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
 /**
  * Function bootstraps the JWT endpoint functionality.
  *

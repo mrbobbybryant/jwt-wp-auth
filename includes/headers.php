@@ -1,6 +1,10 @@
 <?php
 namespace JWT\Headers;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
 /**
  * Function handles bottstrapping the headers process.
  *

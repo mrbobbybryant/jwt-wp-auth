@@ -4,6 +4,10 @@ namespace JWT\Auth;
 use JWT\Headers;
 use JWT\JWT;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
 /**
  * Function handles bootstrapping the JWT Auth Process.
  *
