@@ -21,8 +21,5 @@
     "require": {
       "firebase/php-jwt": "dev-master"
     },
-    "require-dev": {},
-    "autoload": {
-      "files": [ "index.php" ]
-    }
+    "require-dev": {}
   }
