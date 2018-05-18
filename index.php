@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'JWT_AUTH_VERSION' ) ) {
-	define( 'JWT_AUTH_VERSION', '1.0.0' );
+	define( 'JWT_AUTH_VERSION', '1.0.1' );
 }
 
 if ( ! defined( 'JWT_AUTH_PATH' ) ) {

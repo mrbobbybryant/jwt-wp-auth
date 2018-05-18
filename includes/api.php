@@ -112,7 +112,25 @@ function register_user( $request ) {
 	$user = get_default_user_data( get_userdata( $user ) );
 
 	$payload = array_merge( $jwt, $user );
+
+	/**
+	 * Filters the data being returned to the user after creating a new user.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $payload The response being returned to the user.
+	 * @param array $user An array of user data for the new user.
+	 */
 	$payload = apply_filters( 'jwt_wp_filter_register_response', $payload, $user );
+
+	/**
+	 * Fires immediately after a new user is registered.
+	 *
+	 * @since 1.0.1
+	 *
+	 * @param array $user An array of user data for the new user.
+	 */
+	do_action( 'jwt_wp_after_register_user', $user );
 
 	return rest_ensure_response( $payload );
 }
