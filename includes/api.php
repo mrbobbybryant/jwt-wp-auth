@@ -58,6 +58,15 @@ function register_user_auth_route() {
 			'args'                => get_change_password_arguments(),
 		)
 	);
+
+	register_rest_route(
+		'jwt/v1', '/auth/update_password', array(
+			'methods'             => \WP_REST_Server::EDITABLE,
+			'callback'            => __NAMESPACE__ . '\update_password',
+			'permission_callback' => __NAMESPACE__ . '\update_password_permissions_check',
+			'args'                => get_update_arguments(),
+		)
+	);
 }
 
 /**
@@ -393,6 +402,101 @@ function get_reset_arguments() {
 
 	$args['user_login'] = array(
 		'description'       => esc_html__( 'A WordPress username.' ),
+		'type'              => 'string',
+		'required'          => true,
+		'validate_callback' => __NAMESPACE__ . '\string_arg_validate_callback',
+	);
+
+	return $args;
+}
+
+/**
+ * Callback function which lets a logged in user change their password.
+ *
+ * @since 1.0.2
+ *
+ * @param WP_REST_Request $request Current request.
+ * @return mixed WP_Error || Boolean
+ */
+function update_password( $request ) {
+	$parameters      = $request->get_params();
+	$current_user_id = get_current_user_id();
+
+	$user_data = array(
+		'ID'        => $current_user_id,
+		'user_pass' => $parameters['password'],
+	);
+
+	$updated = wp_update_user( $user_data );
+
+	if ( is_wp_error( $updated ) ) {
+		$error = new \WP_Error(
+			$updated->get_error_code(),
+			$updated->get_error_message(),
+			array( 'status' => 401 )
+		);
+
+		return rest_ensure_response( $error );
+	}
+
+	return rest_ensure_response( true );
+}
+
+/**
+ * Function validates the the currently logged in user can update their password.
+ *
+ * @since 1.0.2
+ *
+ * @param WP_REST_Request $request Current request.
+ * @return mixed WP_Error || Boolean
+ */
+function update_password_permissions_check( $request ) {
+	$current_user_id = get_current_user_id();
+	$parameters      = $request->get_params();
+
+	if ( ! isset( $parameters['username'] ) ) {
+		return false;
+	}
+
+	if ( empty( $current_user_id ) ) {
+		return new \WP_Error( 'jwt_rest_not_logged_in', __( 'You are not currently logged in.' ), array( 'status' => 401 ) );
+	}
+
+	$user = wp_authenticate( $parameters['username'], $parameters['old_password'] );
+
+	if ( is_wp_error( $user ) ) {
+		$error = new \WP_Error( $user->get_error_code(), $user->get_error_message(), array( 'status' => 401 ) );
+		return rest_ensure_response( $error );
+	}
+
+	return true;
+}
+
+/**
+ * Function defines all of the valid arguments accepted by the update_password endpoint.
+ *
+ * @since 1.0.2
+ * @return array
+ */
+function get_update_arguments() {
+	$args = array();
+
+	$args['username'] = array(
+		'description'       => esc_html__( 'A WordPress username.' ),
+		'type'              => 'string',
+		'required'          => true,
+		'validate_callback' => __NAMESPACE__ . '\string_arg_validate_callback',
+	);
+
+	$args['password'] = array(
+		'description'       => esc_html__( 'The new password.' ),
+		'type'              => 'string',
+		'required'          => true,
+		'validate_callback' => __NAMESPACE__ . '\string_arg_validate_callback',
+	);
+
+	$args['old_password'] = array(
+		'description'       => esc_html__( 'The User\'s old password.' ),
 		'type'              => 'string',
 		'required'          => true,
 		'validate_callback' => __NAMESPACE__ . '\string_arg_validate_callback',
