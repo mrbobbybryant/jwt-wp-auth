@@ -3,7 +3,7 @@
  * Plugin Name:  JWT Rest API Authentication
  * Plugin URI:   https://github.com/mrbobbybryant/jwt-wp-auth
  * Description:  Plugin modifies the WordPress Rest API to use JWTs to Authenticate API Requests.
- * Version:      1.0.2
+ * Version:      1.0.3
  * Author:       Bobby Bryant
  * Author URI:   https://developwithwp.com
  * License:      GPL2
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'JWT_AUTH_VERSION' ) ) {
-	define( 'JWT_AUTH_VERSION', '1.0.2' );
+	define( 'JWT_AUTH_VERSION', '1.0.3' );
 }
 
 if ( ! defined( 'JWT_AUTH_PATH' ) ) {

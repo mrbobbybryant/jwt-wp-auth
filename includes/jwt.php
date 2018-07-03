@@ -17,7 +17,7 @@ function create( $user ) {
 	$expiration  = defined( 'JWT_EXPIRATION' ) && JWT_EXPIRATION ? JWT_EXPIRATION : ( 24 * 60 * 60 );
 	$token_id    = base64_encode( random_bytes( 32 ) );
 	$issued_at   = time();
-	$not_before  = $issued_at + 10;
+	$not_before  = $issued_at;
 	$expire      = $not_before + $expiration;
 	$server_name = gethostname();
 
